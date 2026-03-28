@@ -392,6 +392,24 @@ async function fetchOrderDetails(orders) {
           }
         });
 
+        let frete = 0;
+        const boldTags = doc.querySelectorAll('td b');
+        for (const b of boldTags) {
+          const txt = (b.innerText || '').trim().toLowerCase();
+          if (txt === 'frete' || txt === 'envio') {
+            const row = b.closest('tr');
+            if (row) {
+              const valTd = row.querySelector('td.right.aligned');
+              if (valTd) {
+                frete = parseFloat(valTd.innerText.replace(/[^\d.,]/g, '').replace(',', '.')) || 0;
+              }
+            }
+            break;
+          }
+        }
+
+        o.frete = frete;
+
         // Só sobrescreve os items parseados simples da tabela principal se obteve sucesso na fatura.
         if (dadosExtraidos.length > 0) {
           o.items = dadosExtraidos;

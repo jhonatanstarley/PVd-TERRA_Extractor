@@ -180,7 +180,7 @@ function downloadBlob(content, mimeType, filename) {
 
 // ─── CONVERTERS ─────────────────────────────────────────
 function toCSV(orders, consultant) {
-  const header = 'id,date,period,pv,valor,recipient,tipo,items,hasLRP,consultant_id,consultant_name';
+  const header = 'id,date,period,pv,valor,frete,recipient,tipo,items,hasLRP,consultant_id,consultant_name';
   const cId = consultant?.id ? `"${consultant.id}"` : '""';
   const cNm = consultant?.name ? `"${consultant.name.replace(/"/g,'""')}"` : '""';
   const rows = orders.map(o => {
@@ -196,6 +196,7 @@ function toCSV(orders, consultant) {
       o.period,
       o.pv,
       o.valor,
+      o.frete || 0,
       `"${(o.recipient||'').replace(/"/g,'""')}"`,
       o.tipo,
       `"${itemsStr}"`,
@@ -223,6 +224,7 @@ function toXML(orders, consultant) {
       <period>${esc(o.period)}</period>
       <pv>${o.pv}</pv>
       <valor>${o.valor}</valor>
+      <frete>${o.frete || 0}</frete>
       <recipient>${esc(o.recipient)}</recipient>
       <tipo>${esc(o.tipo)}</tipo>
       <items>${itemsStr}</items>
