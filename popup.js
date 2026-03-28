@@ -183,26 +183,41 @@ function toCSV(orders, consultant) {
   const header = 'id,date,period,pv,valor,recipient,tipo,items,hasLRP,consultant_id,consultant_name';
   const cId = consultant?.id ? `"${consultant.id}"` : '""';
   const cNm = consultant?.name ? `"${consultant.name.replace(/"/g,'""')}"` : '""';
-  const rows = orders.map(o => [
-    o.id,
-    o.date,
-    o.period,
-    o.pv,
-    o.valor,
-    `"${(o.recipient||'').replace(/"/g,'""')}"`,
-    o.tipo,
-    `"${(o.items||[]).join(';')}"`,
-    o.hasLRP ? 'true' : 'false',
-    cId,
-    cNm
-  ].join(','));
+  const rows = orders.map(o => {
+    let itemsStr = '';
+    if (o.items && o.items.length && typeof o.items[0] === 'object') {
+      itemsStr = JSON.stringify(o.items).replace(/"/g, '""');
+    } else {
+      itemsStr = (o.items || []).join(';');
+    }
+    return [
+      o.id,
+      o.date,
+      o.period,
+      o.pv,
+      o.valor,
+      `"${(o.recipient||'').replace(/"/g,'""')}"`,
+      o.tipo,
+      `"${itemsStr}"`,
+      o.hasLRP ? 'true' : 'false',
+      cId,
+      cNm
+    ].join(',');
+  });
   return [header, ...rows].join('\r\n');
 }
 
 function toXML(orders, consultant) {
   const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   const consStr = consultant ? `  <consultant>\n    <id>${esc(consultant.id)}</id>\n    <name>${esc(consultant.name)}</name>\n  </consultant>\n` : '';
-  const rows = orders.map(o => `    <order>
+  const rows = orders.map(o => {
+    let itemsStr = '';
+    if (o.items && o.items.length && typeof o.items[0] === 'object') {
+      itemsStr = esc(JSON.stringify(o.items));
+    } else {
+      itemsStr = esc((o.items || []).join(';'));
+    }
+    return `    <order>
       <id>${esc(o.id)}</id>
       <date>${esc(o.date)}</date>
       <period>${esc(o.period)}</period>
@@ -210,9 +225,10 @@ function toXML(orders, consultant) {
       <valor>${o.valor}</valor>
       <recipient>${esc(o.recipient)}</recipient>
       <tipo>${esc(o.tipo)}</tipo>
-      <items>${esc((o.items||[]).join(';'))}</items>
+      <items>${itemsStr}</items>
       <hasLRP>${o.hasLRP?'true':'false'}</hasLRP>
-    </order>`);
+    </order>`;
+  });
   return `<?xml version="1.0" encoding="UTF-8"?>\n<pvdoterra>\n${consStr}  <orders>\n${rows.join('\n')}\n  </orders>\n</pvdoterra>`;
 }
 

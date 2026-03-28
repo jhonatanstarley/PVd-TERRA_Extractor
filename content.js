@@ -49,6 +49,10 @@ async function startExtraction(format) {
 
     sendProgress('Extraindo dados da tabela…', 90);
     const orders = parseOrders();
+
+    // Fetch detalhes completos das faturas
+    await fetchOrderDetails(orders);
+
     const consultant = extractConsultantInfo(orders);
 
     sendProgress(`${orders.length} pedidos extraídos. Gerando arquivo…`, 98);
@@ -341,3 +345,64 @@ function injectExtractionButton() {
 setInterval(() => {
   if (isOnHistoryPage()) injectExtractionButton();
 }, 2000);
+
+// ─── FETCH DETALHES DA FATURA (BACKGROUND) ───────────────
+async function fetchOrderDetails(orders) {
+  const BATCH_SIZE = 5; // Busca 5 pedidos por vez num pool concorrente
+  for (let i = 0; i < orders.length; i += BATCH_SIZE) {
+    const batch = orders.slice(i, i + BATCH_SIZE);
+    
+    const pct = 90 + Math.floor(((i + batch.length) / orders.length) * 8); // Vai de 90 a 98%
+    sendProgress(`Buscando cupons fiscais (${i + batch.length} de ${orders.length} pedidos)...`, pct);
+
+    await Promise.all(batch.map(async (o) => {
+      try {
+        const url = `https://office.doterra.com/index.cfm?fuseaction=evo_Modules.OrderInvoice&ODHNumber=${o.id}`;
+        const resp = await fetch(url);
+        if (!resp.ok) return;
+
+        const html = await resp.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const tabela = doc.querySelector('table.ui.striped.unstackable.table.bigEVOTable');
+        if (!tabela) return;
+
+        const linhas = tabela.querySelectorAll('tbody tr');
+        const dadosExtraidos = [];
+
+        linhas.forEach(linha => {
+          const celulas = linha.querySelectorAll('td');
+          if (celulas.length === 8) {
+            // Conversão de valores pt-BR "12,34" -> 12.34
+            const pvStr = celulas[4].innerText.trim().replace(',', '.');
+            const pvTotalStr = celulas[5].innerText.trim().replace(',', '.');
+            const priceStr = celulas[6].innerText.trim().replace(/[^\d.,]/g, '').replace(',', '.');
+            const priceTotalStr = celulas[7].innerText.trim().replace(/[^\d.,]/g, '').replace(',', '.');
+
+            const item = {
+              code: celulas[0].innerText.trim(),
+              name: celulas[3].innerText.trim().replace(/\n/g, ' - ').replace(/\s{2,}/g, ' '),
+              qty: parseInt(celulas[1].innerText.trim(), 10) || 1,
+              pv: parseFloat(pvStr) || 0,
+              pvTotal: parseFloat(pvTotalStr) || 0,
+              price: parseFloat(priceStr) || 0,
+              priceTotal: parseFloat(priceTotalStr) || 0
+            };
+            dadosExtraidos.push(item);
+          }
+        });
+
+        // Só sobrescreve os items parseados simples da tabela principal se obteve sucesso na fatura.
+        if (dadosExtraidos.length > 0) {
+          o.items = dadosExtraidos;
+        }
+
+      } catch (err) {
+        console.warn(`Erro ao buscar fatura do pedido ${o.id}:`, err);
+      }
+    }));
+    
+    // Pequeno delay entre batches para evitar Rate Limit e WAF Blocks (ex: Imperva)
+    await new Promise(r => setTimeout(r, 600));
+  }
+}
