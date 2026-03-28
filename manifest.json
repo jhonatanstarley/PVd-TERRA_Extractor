@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "PVdōTERRA Extractor",
+  "version": "1.0",
+  "description": "Extrai histórico de pedidos doTERRA clicando em 'Ver mais' automaticamente e exporta para JSON, CSV ou XML.",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "downloads",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://office.doterra.com/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "PVdōTERRA Extractor"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://office.doterra.com/*",
+        "*://*.vercel.app/*",
+        "*://localhost/*",
+        "file:///*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {
+    "128": "icons/icon.png"
+  }
+}
