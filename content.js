@@ -398,7 +398,7 @@ async function fetchOrderDetails(orders) {
         }
 
       } catch (err) {
-        console.warn(`Erro ao buscar fatura do pedido ${o.id}:`, err);
+        // Ignora falhas de rede (WAF/Rate Limits) silenciosamente para não poluir o console
       }
     }));
     
