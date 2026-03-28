@@ -8,10 +8,10 @@ let isRunning = false;
 // Se não estamos no doTERRA EVO, apenas sinaliza a presença da extensão para a Dashboard Fiori
 if (!location.href.toLowerCase().includes('orderhistoryfull') && !document.getElementById('OrderhistoryRows')) {
   try {
-    const s = document.createElement('script');
-    s.textContent = 'window.__PVEXT__ = true;';
-    (document.head || document.documentElement).appendChild(s);
-    setTimeout(() => s.remove(), 100);
+    const indicator = document.createElement('div');
+    indicator.id = 'pv-ext-indicator';
+    indicator.style.display = 'none';
+    (document.body || document.documentElement).appendChild(indicator);
   } catch(e) {}
 }
 
