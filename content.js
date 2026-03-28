@@ -272,3 +272,72 @@ function sendProgress(message, percent) {
     chrome.runtime.sendMessage({ action: 'progress', message, percent });
   } catch(e) {}
 }
+
+// ─── INJEÇÃO DO BOTÃO UI NA PÁGINA ─────────────────────────
+function injectExtractionButton() {
+  if (document.getElementById('pvdt-extract-btn')) return;
+  
+  const btn = document.createElement('button');
+  btn.id = 'pvdt-extract-btn';
+  btn.textContent = 'Extrair Dados (PVdōTERRA)';
+  btn.style.cssText = `
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #ef4444;
+    color: white;
+    font-weight: bold;
+    padding: 12px 24px;
+    border-radius: 8px;
+    border: none;
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3);
+    cursor: pointer;
+    z-index: 9999999;
+    font-size: 16px;
+    transition: all 0.2s;
+  `;
+  
+  btn.onmouseover = () => btn.style.background = '#dc2626';
+  btn.onmouseout = () => btn.style.background = '#ef4444';
+  
+  btn.onclick = async () => {
+    btn.textContent = '⏳ Extraindo... Mantenha a aba aberta!';
+    btn.disabled = true;
+    btn.style.background = '#6b7280';
+    try {
+      const result = await startExtraction('json');
+      if (result.ok) {
+        // Gerar e baixar arquivo json nativamente
+        const blob = new Blob([JSON.stringify(result, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0,19);
+        a.download = `pvdoterra-historico-${ts}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        btn.textContent = '✅ Arquivo Baixado!';
+        btn.style.background = '#10b981';
+      }
+    } catch (err) {
+      btn.textContent = '❌ Falha. Tente novamente.';
+      btn.style.background = '#ef4444';
+      console.error(err);
+    }
+    setTimeout(() => {
+      btn.disabled = false;
+      btn.textContent = 'Extrair Dados (PVdōTERRA)';
+      btn.style.background = '#ef4444';
+    }, 4000);
+  };
+  
+  document.body.appendChild(btn);
+}
+
+// Verifica a cada 2s se estamos na página correta para injetar o botão
+setInterval(() => {
+  if (isOnHistoryPage()) injectExtractionButton();
+}, 2000);
