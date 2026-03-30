@@ -1,146 +1,383 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>PVdōTERRA Extractor</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
-  :root{
-    --shell:#1D2D3E;--brand:#00A896;--brand-d:#007A6E;--brand-l:#E0F5F3;
-    --ok:#107E3E;--ok-l:#F1FAF5;--err:#BB0000;--err-l:#FFEAEA;
-    --warn:#E9730C;--warn-l:#FEF7F0;
-    --n1:#32363A;--n2:#6A6D70;--n3:#89919A;
-    --border:#D9DBDD;--bg:#F5F6F7;--card:#fff;
-    --font:'IBM Plex Sans',system-ui,sans-serif;
-    --mono:'IBM Plex Mono',monospace;
-  }
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:var(--font);background:var(--bg);color:var(--n1);width:360px;font-size:13px}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>PVdōTERRA Extractor</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
 
-  header{background:var(--shell);padding:.75rem 1rem;display:flex;align-items:center;gap:.6rem}
-  .logo{width:26px;height:26px;background:var(--brand);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0}
-  .app-name{font-size:14px;font-weight:600;color:#fff}.app-name em{color:var(--brand);font-style:normal}
-  .ver{font-size:10px;color:#8FA8C0;margin-left:auto}
+    :root {
+      --shell: #1D2D3E;
+      --brand: #00A896;
+      --brand-d: #007A6E;
+      --brand-l: #E0F5F3;
+      --ok: #107E3E;
+      --ok-l: #F1FAF5;
+      --err: #BB0000;
+      --err-l: #FFEAEA;
+      --warn: #E9730C;
+      --warn-l: #FEF7F0;
+      --n1: #32363A;
+      --n2: #6A6D70;
+      --n3: #89919A;
+      --border: #D9DBDD;
+      --bg: #F5F6F7;
+      --card: #fff;
+      --font: 'IBM Plex Sans', system-ui, sans-serif;
+      --mono: 'IBM Plex Mono', monospace;
+    }
 
-  .content{padding:1rem}
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
 
-  /* STATUS BOX */
-  .status-box{border-radius:6px;padding:.75rem 1rem;margin-bottom:1rem;display:flex;align-items:flex-start;gap:8px;font-size:12px;line-height:1.5}
-  .status-box.info{background:var(--brand-l);border:1px solid #A8E6DF;color:var(--brand-d)}
-  .status-box.ok{background:var(--ok-l);border:1px solid #A8D5B5;color:var(--ok)}
-  .status-box.err{background:var(--err-l);border:1px solid #FFBDBD;color:var(--err)}
-  .status-box.warn{background:var(--warn-l);border:1px solid #ffc88a;color:var(--warn)}
-  .status-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--n1);
+      width: 360px;
+      font-size: 13px
+    }
 
-  /* PROGRESS */
-  .prog-wrap{margin-bottom:1rem;display:none}
-  .prog-bar-bg{background:var(--border);border-radius:4px;height:6px;overflow:hidden;margin-bottom:.4rem}
-  .prog-bar{background:var(--brand);height:100%;border-radius:4px;transition:width .3s}
-  .prog-label{font-size:11px;color:var(--n2)}
+    header {
+      background: var(--shell);
+      padding: .75rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: .6rem
+    }
 
-  /* FORMAT SELECTOR */
-  .format-row{display:flex;gap:.5rem;margin-bottom:1rem}
-  .fmt-btn{flex:1;padding:.5rem;border:2px solid var(--border);border-radius:6px;background:var(--card);color:var(--n2);font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;font-family:var(--font)}
-  .fmt-btn:hover{border-color:var(--brand-d);color:var(--brand-d)}
-  .fmt-btn.sel{border-color:var(--brand);background:var(--brand);color:#fff}
+    .logo {
+      width: 26px;
+      height: 26px;
+      background: var(--brand);
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0
+    }
 
-  /* BUTTONS */
-  .btn{width:100%;padding:.65rem;border:none;border-radius:6px;font-size:13px;font-weight:600;font-family:var(--font);cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:.4rem}
-  .btn-primary{background:var(--brand);color:#fff}
-  .btn-primary:hover{background:var(--brand-d)}
-  .btn-primary:disabled{background:var(--n3);cursor:not-allowed}
-  .btn-secondary{background:var(--card);border:1px solid var(--border);color:var(--n2);margin-top:.5rem}
-  .btn-secondary:hover{background:var(--bg);border-color:var(--n3)}
-  .btn-secondary:disabled{opacity:.5;cursor:not-allowed}
+    .app-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff
+    }
 
-  /* RESULT */
-  .result-card{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:.75rem;margin-bottom:.75rem;display:none}
-  .result-card .num{font-size:24px;font-weight:700;font-family:var(--mono);color:var(--brand-d)}
-  .result-card .lbl{font-size:11px;color:var(--n3);text-transform:uppercase;letter-spacing:.4px}
+    .app-name em {
+      color: var(--brand);
+      font-style: normal
+    }
 
-  /* DIVIDER */
-  .divider{border:none;border-top:1px solid var(--border);margin:.75rem 0}
+    .ver {
+      font-size: 10px;
+      color: #8FA8C0;
+      margin-left: auto
+    }
 
-  /* LINK */
-  .link{color:var(--brand-d);font-size:11px;text-decoration:none;display:block;text-align:center;margin-top:.5rem}
-  .link:hover{text-decoration:underline}
+    .content {
+      padding: 1rem
+    }
 
-  .spin{display:inline-block;animation:spin 1s linear infinite}
-  @keyframes spin{to{transform:rotate(360deg)}}
+    /* STATUS BOX */
+    .status-box {
+      border-radius: 6px;
+      padding: .75rem 1rem;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 12px;
+      line-height: 1.5
+    }
 
-  .not-on-page{padding:1rem;text-align:center;color:var(--n2);font-size:12px;line-height:1.6}
-  .not-on-page .big{font-size:2rem;display:block;margin-bottom:.5rem}
-</style>
+    .status-box.info {
+      background: var(--brand-l);
+      border: 1px solid #A8E6DF;
+      color: var(--brand-d)
+    }
+
+    .status-box.ok {
+      background: var(--ok-l);
+      border: 1px solid #A8D5B5;
+      color: var(--ok)
+    }
+
+    .status-box.err {
+      background: var(--err-l);
+      border: 1px solid #FFBDBD;
+      color: var(--err)
+    }
+
+    .status-box.warn {
+      background: var(--warn-l);
+      border: 1px solid #ffc88a;
+      color: var(--warn)
+    }
+
+    .status-icon {
+      font-size: 16px;
+      flex-shrink: 0;
+      margin-top: 1px
+    }
+
+    /* PROGRESS */
+    .prog-wrap {
+      margin-bottom: 1rem;
+      display: none
+    }
+
+    .prog-bar-bg {
+      background: var(--border);
+      border-radius: 4px;
+      height: 6px;
+      overflow: hidden;
+      margin-bottom: .4rem
+    }
+
+    .prog-bar {
+      background: var(--brand);
+      height: 100%;
+      border-radius: 4px;
+      transition: width .3s
+    }
+
+    .prog-label {
+      font-size: 11px;
+      color: var(--n2)
+    }
+
+    /* FORMAT SELECTOR */
+    .format-row {
+      display: flex;
+      gap: .5rem;
+      margin-bottom: 1rem
+    }
+
+    .fmt-btn {
+      flex: 1;
+      padding: .5rem;
+      border: 2px solid var(--border);
+      border-radius: 6px;
+      background: var(--card);
+      color: var(--n2);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .15s;
+      font-family: var(--font)
+    }
+
+    .fmt-btn:hover {
+      border-color: var(--brand-d);
+      color: var(--brand-d)
+    }
+
+    .fmt-btn.sel {
+      border-color: var(--brand);
+      background: var(--brand);
+      color: #fff
+    }
+
+    /* BUTTONS */
+    .btn {
+      width: 100%;
+      padding: .65rem;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: var(--font);
+      cursor: pointer;
+      transition: all .15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: .4rem
+    }
+
+    .btn-primary {
+      background: var(--brand);
+      color: #fff
+    }
+
+    .btn-primary:hover {
+      background: var(--brand-d)
+    }
+
+    .btn-primary:disabled {
+      background: var(--n3);
+      cursor: not-allowed
+    }
+
+    .btn-secondary {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--n2);
+      margin-top: .5rem
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg);
+      border-color: var(--n3)
+    }
+
+    .btn-secondary:disabled {
+      opacity: .5;
+      cursor: not-allowed
+    }
+
+    /* RESULT */
+    .result-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: .75rem;
+      margin-bottom: .75rem;
+      display: none
+    }
+
+    .result-card .num {
+      font-size: 24px;
+      font-weight: 700;
+      font-family: var(--mono);
+      color: var(--brand-d)
+    }
+
+    .result-card .lbl {
+      font-size: 11px;
+      color: var(--n3);
+      text-transform: uppercase;
+      letter-spacing: .4px
+    }
+
+    /* DIVIDER */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: .75rem 0
+    }
+
+    /* LINK */
+    .link {
+      color: var(--brand-d);
+      font-size: 11px;
+      text-decoration: none;
+      display: block;
+      text-align: center;
+      margin-top: .5rem
+    }
+
+    .link:hover {
+      text-decoration: underline
+    }
+
+    .spin {
+      display: inline-block;
+      animation: spin 1s linear infinite
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg)
+      }
+    }
+
+    .not-on-page {
+      padding: 1rem;
+      text-align: center;
+      color: var(--n2);
+      font-size: 12px;
+      line-height: 1.6
+    }
+
+    .not-on-page .big {
+      font-size: 2rem;
+      display: block;
+      margin-bottom: .5rem
+    }
+  </style>
 </head>
+
 <body>
 
-<header>
-  <div class="logo">PV</div>
-  <span class="app-name">PV<em>dō</em>TERRA <span style="font-size:11px;font-weight:400;color:#8FA8C0">Extractor</span></span>
-  <span class="ver">v1.0</span>
-</header>
+  <header>
+    <div class="logo">PV</div>
+    <span class="app-name">PV<em>dō</em>TERRA <span
+        style="font-size:11px;font-weight:400;color:#8FA8C0">Extractor</span></span>
+    <span class="ver">v1.0</span>
+  </header>
 
-<div class="content" id="main-content">
+  <div class="content" id="main-content">
 
-  <div class="status-box info" id="status-box">
-    <span class="status-icon">ℹ️</span>
-    <div id="status-text">Verificando página…</div>
-  </div>
-
-  <div class="prog-wrap" id="prog-wrap">
-    <div class="prog-bar-bg"><div class="prog-bar" id="prog-bar" style="width:0%"></div></div>
-    <div class="prog-label" id="prog-label">Aguardando…</div>
-  </div>
-
-  <div id="not-on-page" style="display:none" class="not-on-page">
-    <span class="big">🔗</span>
-    Abra a página de histórico de pedidos do doTERRA e clique no ícone da extensão novamente.
-    <br><br>
-    <a href="https://office.doterra.com/index.cfm?Fuseaction=evo_Modules.OrderHistoryFull"
-       target="_blank" class="btn btn-primary" id="open-page-btn" style="text-decoration:none;margin-top:.5rem">
-      🌐 Abrir Histórico de Pedidos
-    </a>
-  </div>
-
-  <div id="on-page-ui" style="display:none">
-
-    <div class="result-card" id="result-card">
-      <div class="num" id="result-num">0</div>
-      <div class="lbl">pedidos extraídos</div>
+    <div class="status-box info" id="status-box">
+      <span class="status-icon">ℹ️</span>
+      <div id="status-text">Verificando página…</div>
     </div>
 
-    <div style="font-size:11px;font-weight:600;color:var(--n3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:.4rem">
-      Formato de exportação
-    </div>
-    <div class="format-row">
-      <button class="fmt-btn" id="fmt-json">JSON</button>
-      <button class="fmt-btn sel" id="fmt-csv">CSV</button>
-      <button class="fmt-btn" id="fmt-xml">XML</button>
+    <div class="prog-wrap" id="prog-wrap">
+      <div class="prog-bar-bg">
+        <div class="prog-bar" id="prog-bar" style="width:0%"></div>
+      </div>
+      <div class="prog-label" id="prog-label">Aguardando…</div>
     </div>
 
-    <button class="btn btn-primary" id="btn-extract">
-      ▶ Extrair Histórico Completo
-    </button>
-    <button class="btn btn-secondary" id="btn-export" disabled>
-      ⬇ Baixar Arquivo
-    </button>
-
-    <hr class="divider">
-    <div style="font-size:11px;color:var(--n3);text-align:center;line-height:1.5">
-      A extensão clicará em <strong>"Ver mais"</strong> automaticamente<br>
-      até carregar todo o histórico antes de exportar.
+    <div id="not-on-page" style="display:none" class="not-on-page">
+      <span class="big">🔗</span>
+      Abra a página de histórico de pedidos do doTERRA e clique no ícone da extensão novamente.
+      <br><br>
+      <a href="https://office.doterra.com/index.cfm?Fuseaction=evo_Modules.OrderHistoryFull" target="_blank"
+        class="btn btn-primary" id="open-page-btn" style="text-decoration:none;margin-top:.5rem">
+        🌐 Abrir Histórico de Pedidos
+      </a>
     </div>
 
-    <a href="index.html" 
-       id="open-system-link" class="link" target="_blank" 
-       title="Abrir sistema de gestão">
-       📊 Abrir PVdōTERRA (Sistema de Gestão)
-    </a>
+    <div id="on-page-ui" style="display:none">
+
+      <div class="result-card" id="result-card">
+        <div class="num" id="result-num">0</div>
+        <div class="lbl">pedidos extraídos</div>
+      </div>
+
+      <div
+        style="font-size:11px;font-weight:600;color:var(--n3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:.4rem">
+        Formato de exportação
+      </div>
+      <div class="format-row">
+        <button class="fmt-btn" id="fmt-json">JSON</button>
+        <button class="fmt-btn sel" id="fmt-csv">CSV</button>
+        <button class="fmt-btn" id="fmt-xml">XML</button>
+      </div>
+
+      <button class="btn btn-primary" id="btn-extract">
+        ▶ Extrair Histórico Completo
+      </button>
+      <button class="btn btn-secondary" id="btn-export" disabled>
+        ⬇ Baixar Arquivo
+      </button>
+
+      <hr class="divider">
+      <div style="font-size:11px;color:var(--n3);text-align:center;line-height:1.5">
+        A extensão clicará em <strong>"Ver mais"</strong> automaticamente<br>
+        até carregar todo o histórico antes de exportar.
+      </div>
+
+      <a href="https://doterrapv.vercel.app/" id="open-system-link" class="link" target="_blank"
+        title="Abrir sistema de gestão">
+        📊 Abrir PVdōTERRA (Sistema de Gestão)
+      </a>
+    </div>
+
   </div>
 
-</div>
-
-<script src="popup.js"></script>
+  <script src="popup.js"></script>
 </body>
+
 </html>
