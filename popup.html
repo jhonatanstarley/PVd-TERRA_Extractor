@@ -375,9 +375,15 @@
       </a>
     </div>
 
+    <div style="font-size:10px;color:var(--n3);text-align:center;margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--border)">
+      &copy; <span id="ext-year"></span> Jhonatan Starley Coelho.<br>
+      <a href="https://doterrapv.vercel.app/privacy.html" target="_blank" style="color:var(--n2);text-decoration:none">Privacidade</a> &bull; 
+      <a href="https://doterrapv.vercel.app/terms.html" target="_blank" style="color:var(--n2);text-decoration:none">Termos de Uso</a>
+    </div>
   </div>
 
   <script src="popup.js"></script>
+  <script>document.getElementById('ext-year').textContent = new Date().getFullYear();</script>
 </body>
 
 </html>
