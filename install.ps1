@@ -145,7 +145,7 @@ Write-Host "[*] Abrindo o $($SelectedBrowser.Name) e o Explorador de Arquivos...
 Invoke-Item $ExtFolder
 
 try {
-    Start-Process -FilePath $SelectedBrowser.Exe
+    Start-Process -FilePath $SelectedBrowser.Exe -ArgumentList "about:blank"
 } catch {
     Write-Host "[!] Não foi possível abrir o navegador automaticamente. Abra manualmente." -ForegroundColor Red
 }
