@@ -5,7 +5,6 @@ $ErrorActionPreference = "Stop"
 
 # === CONFIGURAÇÕES ===
 # Link direto para o Download do seu arquivo .zip da extensão no GitHub
-# Você precisa atualizar este link para o RAW do seu arquivo ZIP no repositório
 $RepoZipUrl = "https://raw.githubusercontent.com/jhonatanstarley/PVd-TERRA_Extractor/main/ext_pv_doterra.zip"
 
 $DocsPath = [Environment]::GetFolderPath('MyDocuments')
@@ -18,7 +17,107 @@ Write-Host "   Instalador PV dōTERRA Extractor 🚀    " -ForegroundColor Green
 Write-Host "=========================================" -ForegroundColor Cyan
 Write-Host ""
 
-# 1. Verifica e limpa versão antiga
+# 1. FUNÇÃO: DETECÇÃO DE NAVEGADORES
+function Get-InstalledBrowsers {
+    $browsers = @()
+    
+    # Google Chrome
+    $chromePath = "$env:ProgramFiles\Google\Chrome\Application\chrome.exe"
+    $chromePath2 = "${env:ProgramFiles(x86)}\Google\Chrome\Application\chrome.exe"
+    $chromePath3 = "$env:LOCALAPPDATA\Google\Chrome\Application\chrome.exe"
+    if ((Test-Path $chromePath) -or (Test-Path $chromePath2) -or (Test-Path $chromePath3)) {
+        $exe = if(Test-Path $chromePath){$chromePath} elseif(Test-Path $chromePath2){$chromePath2} else{$chromePath3}
+        $browsers += [PSCustomObject]@{Name="Google Chrome"; Exe=$exe; Url="chrome://extensions/"}
+    }
+
+    # Microsoft Edge
+    $edgePath = "${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe"
+    if (Test-Path $edgePath) {
+        $browsers += [PSCustomObject]@{Name="Microsoft Edge"; Exe=$edgePath; Url="edge://extensions/"}
+    }
+
+    # Brave Browser
+    $bravePath = "$env:ProgramFiles\BraveSoftware\Brave-Browser\Application\brave.exe"
+    $bravePath2 = "$env:LOCALAPPDATA\BraveSoftware\Brave-Browser\Application\brave.exe"
+    if ((Test-Path $bravePath) -or (Test-Path $bravePath2)) {
+        $exe = if(Test-Path $bravePath){$bravePath} else{$bravePath2}
+        $browsers += [PSCustomObject]@{Name="Brave Browser"; Exe=$exe; Url="brave://extensions/"}
+    }
+    
+    # Opera
+    $operaPath = "$env:LOCALAPPDATA\Programs\Opera\launcher.exe"
+    $operaPath2 = "$env:LOCALAPPDATA\Programs\Opera GX\launcher.exe"
+    if (Test-Path $operaPath) { $browsers += [PSCustomObject]@{Name="Opera"; Exe=$operaPath; Url="opera://extensions/"} }
+    if (Test-Path $operaPath2) { $browsers += [PSCustomObject]@{Name="Opera GX"; Exe=$operaPath2; Url="opera://extensions/"} }
+
+    return $browsers
+}
+
+$AvailableBrowsers = Get-InstalledBrowsers
+if ($AvailableBrowsers.Count -eq 0) {
+    Write-Host "[X] Nenhum navegador compativel detectado. Encerrando." -ForegroundColor Red
+    exit
+}
+
+# 2. UI: SELEÇÃO DE NAVEGADOR
+Write-Host "[*] Detectando navegadores..." -ForegroundColor Yellow
+Add-Type -AssemblyName System.Windows.Forms
+Add-Type -AssemblyName System.Drawing
+
+$form = New-Object System.Windows.Forms.Form
+$form.Text = 'Instalador PV dōTERRA'
+$form.Size = New-Object System.Drawing.Size(320,180)
+$form.StartPosition = 'CenterScreen'
+$form.FormBorderStyle = 'FixedDialog'
+$form.MaximizeBox = $false
+$form.MinimizeBox = $false
+$form.TopMost = $true
+
+$label = New-Object System.Windows.Forms.Label
+$label.Location = New-Object System.Drawing.Point(15,20)
+$label.Size = New-Object System.Drawing.Size(280,20)
+$label.Text = 'Selecione o navegador para instalar a extensão:'
+$label.Font = New-Object System.Drawing.Font('Segoe UI', 9)
+$form.Controls.Add($label)
+
+$comboBox = New-Object System.Windows.Forms.ComboBox
+$comboBox.Location = New-Object System.Drawing.Point(15,50)
+$comboBox.Size = New-Object System.Drawing.Size(270,20)
+$comboBox.DropDownStyle = 'DropDownList'
+$comboBox.Font = New-Object System.Drawing.Font('Segoe UI', 9)
+foreach($b in $AvailableBrowsers) { $comboBox.Items.Add($b.Name) | Out-Null }
+$comboBox.SelectedIndex = 0
+$form.Controls.Add($comboBox)
+
+$okButton = New-Object System.Windows.Forms.Button
+$okButton.Location = New-Object System.Drawing.Point(120,95)
+$okButton.Size = New-Object System.Drawing.Size(80,25)
+$okButton.Text = 'Avançar'
+$okButton.Font = New-Object System.Drawing.Font('Segoe UI', 9)
+$okButton.DialogResult = [System.Windows.Forms.DialogResult]::OK
+$form.AcceptButton = $okButton
+$form.Controls.Add($okButton)
+
+$cancelButton = New-Object System.Windows.Forms.Button
+$cancelButton.Location = New-Object System.Drawing.Point(205,95)
+$cancelButton.Size = New-Object System.Drawing.Size(80,25)
+$cancelButton.Text = 'Cancelar'
+$cancelButton.Font = New-Object System.Drawing.Font('Segoe UI', 9)
+$cancelButton.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
+$form.CancelButton = $cancelButton
+$form.Controls.Add($cancelButton)
+
+$result = $form.ShowDialog()
+
+if ($result -ne [System.Windows.Forms.DialogResult]::OK) {
+    Write-Host "[*] Instalacao cancelada pelo usuario." -ForegroundColor Yellow
+    exit
+}
+
+$SelectedBrowser = $AvailableBrowsers | Where-Object { $_.Name -eq $comboBox.SelectedItem }
+Write-Host "[*] Navegador Selecionado: $($SelectedBrowser.Name)" -ForegroundColor Green
+
+# 3. DOWNLOAD E EXTRAÇÃO
 if (Test-Path $ExtFolder) {
     Write-Host "[*] Removendo versão antiga..." -ForegroundColor Yellow
     Remove-Item -Path $ExtFolder -Recurse -Force | Out-Null
@@ -26,7 +125,6 @@ if (Test-Path $ExtFolder) {
 
 New-Item -ItemType Directory -Force -Path $ExtFolder | Out-Null
 
-# 2. Faz o Download
 Write-Host "[*] Baixando a extensão (isso pode levar alguns segundos)..." -ForegroundColor Cyan
 try {
     Invoke-WebRequest -Uri $RepoZipUrl -OutFile $ZipPath
@@ -35,39 +133,33 @@ try {
     exit
 }
 
-# 3. Extrai os arquivos
 Write-Host "[*] Descompactando na sua pasta Documentos..." -ForegroundColor Cyan
 Expand-Archive -Path $ZipPath -DestinationPath $ExtFolder -Force
 
-# 4. Limpeza
 Remove-Item -Path $ZipPath -Force
 
 Write-Host "[✓] Arquivos preparados com sucesso!" -ForegroundColor Green
 
-# 5. Instruções finais via Pop-up
-Add-Type -AssemblyName PresentationFramework
-
-$msg = "✅ Extensão baixada com sucesso!`n`n"
+# 4. INSTRUÇÕES FINAIS E ABERTURA
+$msg = "✅ Extensão preparada para o $($SelectedBrowser.Name)!`n`n"
 $msg += "Os arquivos foram salvos na sua pasta Documentos:`n$ExtFolder`n`n"
-$msg += "👉 PARA INSTALAR NO CHROME:`n"
-$msg += "1. Marque a caixinha 'Modo do desenvolvedor' (canto superior direito).`n"
-$msg += "2. Clique no botão 'Carregar sem compactação'.`n"
-$msg += "3. Selecione a pasta 'PV_doTERRA_Extensao' que acabou de ser aberta.`n`n"
-$msg += "O Chrome e a Pasta serão abertos assim que você clicar em OK."
+$msg += "👉 PARA FINALIZAR A INSTALAÇÃO:`n"
+$msg += "1. Marque a caixinha 'Modo do desenvolvedor' (geralmente no canto superior ou no menu lateral).`n"
+$msg += "2. Clique no botão 'Carregar sem compactação' (ou equivalente).`n"
+$msg += "3. Selecione a pasta 'PV_doTERRA_Extensao' que aparecerá em instantes.`n`n"
+$msg += "O $($SelectedBrowser.Name) e a Pasta do arquivo serão abertos assim que você clicar em OK."
 
 [System.Windows.MessageBox]::Show($msg, "Instalação PV dōTERRA", "OK", "Information") | Out-Null
 
-# 6. Abre as janelas pro usuário
-Write-Host "[*] Abrindo Google Chrome e Explorador de Arquivos..." -ForegroundColor Yellow
+Write-Host "[*] Abrindo o $($SelectedBrowser.Name) e o Explorador de Arquivos..." -ForegroundColor Yellow
 Invoke-Item $ExtFolder
 
-# Tenta abrir o Chrome direto na página de Extensões
 try {
-    Start-Process "chrome.exe" "chrome://extensions/"
+    Start-Process -FilePath $SelectedBrowser.Exe -ArgumentList $SelectedBrowser.Url
 } catch {
-    Write-Host "[!] Chrome não encontrado no path padrão. Abra chrome://extensions/ manualmente." -ForegroundColor Red
+    Write-Host "[!] Não foi possível abrir o navegador automaticamente. Cole isso na URL: $($SelectedBrowser.Url)" -ForegroundColor Red
 }
 
 Write-Host ""
-Write-Host "Tudo pronto! Siga as instruções no navegador." -ForegroundColor Green
+Write-Host "Tudo pronto! Siga as instruções que apareceram na tela." -ForegroundColor Green
 Write-Host "=========================================" -ForegroundColor Cyan
