@@ -141,16 +141,6 @@ Remove-Item -Path $ZipPath -Force
 Write-Host "[✓] Arquivos preparados com sucesso!" -ForegroundColor Green
 
 # 4. INSTRUÇÕES FINAIS E ABERTURA
-$msg = "✅ Extensão preparada para o $($SelectedBrowser.Name)!`n`n"
-$msg += "Os arquivos foram salvos na sua pasta Documentos:`n$ExtFolder`n`n"
-$msg += "👉 PARA FINALIZAR A INSTALAÇÃO:`n"
-$msg += "1. Marque a caixinha 'Modo do desenvolvedor' (geralmente no canto superior ou no menu lateral).`n"
-$msg += "2. Clique no botão 'Carregar sem compactação' (ou equivalente).`n"
-$msg += "3. Selecione a pasta 'PV_doTERRA_Extensao' que aparecerá em instantes.`n`n"
-$msg += "O $($SelectedBrowser.Name) e a Pasta do arquivo serão abertos assim que você clicar em OK."
-
-[System.Windows.MessageBox]::Show($msg, "Instalação PV dōTERRA", "OK", "Information") | Out-Null
-
 Write-Host "[*] Abrindo o $($SelectedBrowser.Name) e o Explorador de Arquivos..." -ForegroundColor Yellow
 Invoke-Item $ExtFolder
 
@@ -160,6 +150,47 @@ try {
     Write-Host "[!] Não foi possível abrir o navegador automaticamente. Cole isso na URL: $($SelectedBrowser.Url)" -ForegroundColor Red
 }
 
+$guideForm = New-Object System.Windows.Forms.Form
+$guideForm.Text = 'Passo a Passo (PV dōTERRA)'
+$guideForm.Size = New-Object System.Drawing.Size(430,300)
+$guideForm.StartPosition = 'CenterScreen'
+$guideForm.TopMost = $true
+$guideForm.FormBorderStyle = 'FixedDialog'
+$guideForm.MaximizeBox = $false
+$guideForm.MinimizeBox = $false
+
+$titleLbl = New-Object System.Windows.Forms.Label
+$titleLbl.Text = "FINALIZE NO $($SelectedBrowser.Name.ToUpper())"
+$titleLbl.Font = New-Object System.Drawing.Font('Segoe UI', 13, [System.Drawing.FontStyle]::Bold)
+$titleLbl.Location = New-Object System.Drawing.Point(15,15)
+$titleLbl.Size = New-Object System.Drawing.Size(390,25)
+$titleLbl.ForeColor = [System.Drawing.Color]::RoyalBlue
+$guideForm.Controls.Add($titleLbl)
+
+$steps = "1️⃣ No seu navegador que acabou de abrir sozinho, ative lá em cima o 'Modo do desenvolvedor'.`r`n`r`n"
+$steps += "2️⃣ Clique no botão que vai aparecer: 'Carregar sem compactação'.`r`n`r`n"
+$steps += "3️⃣ Selecione a pasta amarela 'PV_doTERRA_Extensao'.`r`n`r`n"
+$steps += "🎉 Pronto! A extensão PV dōTERRA está ativa."
+
+$instLbl = New-Object System.Windows.Forms.Label
+$instLbl.Text = $steps
+$instLbl.Font = New-Object System.Drawing.Font('Segoe UI', 10)
+$instLbl.Location = New-Object System.Drawing.Point(15,55)
+$instLbl.Size = New-Object System.Drawing.Size(380,140)
+$guideForm.Controls.Add($instLbl)
+
+$closeBtn = New-Object System.Windows.Forms.Button
+$closeBtn.Text = "Já instalei (Fechar janela)"
+$closeBtn.Font = New-Object System.Drawing.Font('Segoe UI', 10, [System.Drawing.FontStyle]::Bold)
+$closeBtn.Location = New-Object System.Drawing.Point(105,210)
+$closeBtn.Size = New-Object System.Drawing.Size(200,35)
+$closeBtn.BackColor = [System.Drawing.Color]::LightGreen
+$closeBtn.DialogResult = [System.Windows.Forms.DialogResult]::OK
+$guideForm.Controls.Add($closeBtn)
+
+$guideForm.ShowDialog() | Out-Null
+
 Write-Host ""
 Write-Host "Tudo pronto! Siga as instruções que apareceram na tela." -ForegroundColor Green
 Write-Host "=========================================" -ForegroundColor Cyan
+
