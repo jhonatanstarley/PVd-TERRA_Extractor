@@ -152,7 +152,7 @@ try {
 
 $guideForm = New-Object System.Windows.Forms.Form
 $guideForm.Text = 'Passo a Passo (PV dōTERRA)'
-$guideForm.Size = New-Object System.Drawing.Size(430,320)
+$guideForm.Size = New-Object System.Drawing.Size(430,380)
 $guideForm.StartPosition = 'CenterScreen'
 $guideForm.TopMost = $true
 $guideForm.FormBorderStyle = 'FixedDialog'
@@ -179,13 +179,13 @@ $instLbl = New-Object System.Windows.Forms.Label
 $instLbl.Text = $steps
 $instLbl.Font = New-Object System.Drawing.Font('Segoe UI', 10)
 $instLbl.Location = New-Object System.Drawing.Point(15,55)
-$instLbl.Size = New-Object System.Drawing.Size(390,170)
+$instLbl.Size = New-Object System.Drawing.Size(390,220)
 $guideForm.Controls.Add($instLbl)
 
 $closeBtn = New-Object System.Windows.Forms.Button
 $closeBtn.Text = "Já instalei (Fechar janela)"
 $closeBtn.Font = New-Object System.Drawing.Font('Segoe UI', 10, [System.Drawing.FontStyle]::Bold)
-$closeBtn.Location = New-Object System.Drawing.Point(105,230)
+$closeBtn.Location = New-Object System.Drawing.Point(105,280)
 $closeBtn.Size = New-Object System.Drawing.Size(200,35)
 $closeBtn.BackColor = [System.Drawing.Color]::LightGreen
 $closeBtn.DialogResult = [System.Windows.Forms.DialogResult]::OK
