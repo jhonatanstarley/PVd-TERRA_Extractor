@@ -145,14 +145,14 @@ Write-Host "[*] Abrindo o $($SelectedBrowser.Name) e o Explorador de Arquivos...
 Invoke-Item $ExtFolder
 
 try {
-    Start-Process -FilePath $SelectedBrowser.Exe -ArgumentList $SelectedBrowser.Url
+    Start-Process -FilePath $SelectedBrowser.Exe
 } catch {
-    Write-Host "[!] Não foi possível abrir o navegador automaticamente. Cole isso na URL: $($SelectedBrowser.Url)" -ForegroundColor Red
+    Write-Host "[!] Não foi possível abrir o navegador automaticamente. Abra manualmente." -ForegroundColor Red
 }
 
 $guideForm = New-Object System.Windows.Forms.Form
 $guideForm.Text = 'Passo a Passo (PV dōTERRA)'
-$guideForm.Size = New-Object System.Drawing.Size(430,300)
+$guideForm.Size = New-Object System.Drawing.Size(430,320)
 $guideForm.StartPosition = 'CenterScreen'
 $guideForm.TopMost = $true
 $guideForm.FormBorderStyle = 'FixedDialog'
@@ -167,22 +167,25 @@ $titleLbl.Size = New-Object System.Drawing.Size(390,25)
 $titleLbl.ForeColor = [System.Drawing.Color]::RoyalBlue
 $guideForm.Controls.Add($titleLbl)
 
-$steps = "1️⃣ No seu navegador que acabou de abrir sozinho, ative lá em cima o 'Modo do desenvolvedor'.`r`n`r`n"
-$steps += "2️⃣ Clique no botão que vai aparecer: 'Carregar sem compactação'.`r`n`r`n"
-$steps += "3️⃣ Selecione a pasta amarela 'PV_doTERRA_Extensao'.`r`n`r`n"
-$steps += "🎉 Pronto! A extensão PV dōTERRA está ativa."
+$steps = "1️⃣ Vá nas extensões do seu navegador:`r`n"
+$steps += "      Clique nos 3 pontinhos '...' (Menu) no canto superior direito.`r`n"
+$steps += "      Vá em 'Extensões' > 'Gerenciar Extensões'.`r`n`r`n"
+$steps += "2️⃣ Ative a chave 'Modo do desenvolvedor'.`r`n`r`n"
+$steps += "3️⃣ Clique no botão 'Carregar sem compactação' (topo esquerdo).`r`n`r`n"
+$steps += "4️⃣ Selecione a pasta amarela 'PV_doTERRA_Extensao'.`r`n`r`n"
+$steps += "🎉 Pronto! Fixe o ícone do PV dōTERRA no alfinete."
 
 $instLbl = New-Object System.Windows.Forms.Label
 $instLbl.Text = $steps
 $instLbl.Font = New-Object System.Drawing.Font('Segoe UI', 10)
 $instLbl.Location = New-Object System.Drawing.Point(15,55)
-$instLbl.Size = New-Object System.Drawing.Size(380,140)
+$instLbl.Size = New-Object System.Drawing.Size(390,170)
 $guideForm.Controls.Add($instLbl)
 
 $closeBtn = New-Object System.Windows.Forms.Button
 $closeBtn.Text = "Já instalei (Fechar janela)"
 $closeBtn.Font = New-Object System.Drawing.Font('Segoe UI', 10, [System.Drawing.FontStyle]::Bold)
-$closeBtn.Location = New-Object System.Drawing.Point(105,210)
+$closeBtn.Location = New-Object System.Drawing.Point(105,230)
 $closeBtn.Size = New-Object System.Drawing.Size(200,35)
 $closeBtn.BackColor = [System.Drawing.Color]::LightGreen
 $closeBtn.DialogResult = [System.Windows.Forms.DialogResult]::OK
